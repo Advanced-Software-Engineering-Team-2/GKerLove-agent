@@ -1,0 +1,6 @@
+ddddocr==1.4.9
+python-socketio[client]
+loguru==0.6.0
+openai==0.28.0
+requests==2.28.1
+pillow==9.5.0

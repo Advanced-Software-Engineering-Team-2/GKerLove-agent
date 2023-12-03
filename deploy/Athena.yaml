@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gkerlove-agent-athena
+  name: gkerlove-agent-athena
+  namespace: gker-love
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gkerlove-agent-athena
+  template:
+    metadata:
+      labels:
+        app: gkerlove-agent-athena
+    spec:
+      imagePullSecrets:
+        - name: alibaba-docker-registry-secret
+      containers:
+        - image: $REGISTRY/$DOCKERHUB_NAMESPACE/gkerlove-agent:SNAPSHOT-$BUILD_NUMBER
+          imagePullPolicy: Always
+          name: app
+          env:
+          - name: USER_CLASS
+            value: Athena
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openai-api-key
+                key: openaiKey
