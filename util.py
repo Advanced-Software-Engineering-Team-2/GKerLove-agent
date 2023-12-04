@@ -1,45 +1,15 @@
-import requests
-import ddddocr
-import json
-
-from logger import logger
-from config import config
-
-ocr = ddddocr.DdddOcr(show_ad=False)
+from datetime import datetime
+import pytz
 
 
-def login(username, password):
-    session = requests.session()
-    captcha = session.get(f"{config.back_server}/common/captcha")
-    payload = {
-        "username": username,
-        "password": password,
-        "captcha": ocr.classification(captcha.content),
-    }
-    res = session.post(
-        f"{config.back_server}/user/login",
-        headers={
-            "Content-Type": "application/json",
-        },
-        data=json.dumps(payload),
-    )
-    res = res.json()
-    if res["code"] == "SUCCESS":
-        logger.info("登录成功")
-        logger.info("token: " + res["data"]["token"])
-        return res["data"]["token"]
-    else:
-        logger.error("登录失败")
-        return None
-
-
-def fetch_history_messages(session_id, token):
-    return requests.get(
-        f"{config.back_server}/message/{session_id}", headers={"token": token}
-    ).json()["data"]["session"]["messages"]
+def get_now_str():
+    now_utc = datetime.now(pytz.UTC)
+    now_bj = now_utc.astimezone(pytz.timezone("Asia/Shanghai"))
+    iso_date_bj = now_bj.isoformat(timespec="milliseconds")
+    if iso_date_bj.endswith("+00:00"):
+        iso_date_bj = iso_date_bj[:-6] + "Z"
+    return iso_date_bj
 
 
 if __name__ == "__main__":
-    token = login("gyr679", "2023111")
-    res = fetch_history_messages("fd9b07f8-ebaa-444a-83fe-ccabff3807a3", token)
-    print(res)
+    print(get_now_str())

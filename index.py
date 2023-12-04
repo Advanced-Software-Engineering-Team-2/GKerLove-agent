@@ -4,7 +4,8 @@ import socketio
 
 from config import config
 from logger import logger
-from util import login, fetch_history_messages
+from network import login, fetch_history_messages
+from util import get_now_str
 from generate import generate_response
 from users import user_factory
 
@@ -33,7 +34,7 @@ def deal_message(payload):
     """
     session_id = payload["sessionId"]
     message = payload["message"]
-    if message["type"] == "text":
+    if message["type"] == "text":  # 只处理文本消息
         history = fetch_history_messages(session_id, token)
         history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
         context = []
@@ -47,7 +48,6 @@ def deal_message(payload):
             )
         sio.emit("startTyping", session_id, callback=lambda _: None)
         response = generate_response(user, context)  # 生成响应内容
-        sio.emit("stopTyping", session_id, callback=lambda _: None)
 
         def handle_callback(res):
             if res["type"] == "SUCCESS":
@@ -55,11 +55,19 @@ def deal_message(payload):
             else:
                 logger.error("回复失败")
 
-        sio.emit(
-            "privateMessage",
-            {"type": "text", "recipientId": message["senderId"], "content": response},
-            callback=handle_callback,
-        )
+        history = fetch_history_messages(session_id, token)
+        if history[-1]["_id"] == message["_id"]:  # 在发送回复之前再看一眼聊天记录，如果用户有新的输入，则不进行回复
+            sio.emit("stopTyping", session_id, callback=lambda _: None)
+            sio.emit(
+                "privateMessage",
+                {
+                    "type": "text",
+                    "recipientId": message["senderId"],
+                    "content": response,
+                    "timestamp": get_now_str(),
+                },
+                callback=handle_callback,
+            )
 
 
 @sio.event
