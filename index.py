@@ -34,40 +34,55 @@ def deal_message(payload):
     """
     session_id = payload["sessionId"]
     message = payload["message"]
-    if message["type"] == "text":  # 只处理文本消息
-        history = fetch_history_messages(session_id, token)
-        history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
-        context = []
-        for history_msg in history:
-            from_user = history_msg["senderId"] == message["senderId"]
+    # if message["type"] == "text":  # 只处理文本消息
+    history = fetch_history_messages(session_id, token)
+    # history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
+    context = []
+    for history_msg in history:
+        from_user = history_msg["senderId"] == message["senderId"]
+        if history_msg["type"] == "text":
             context.append(
                 {
                     "role": "user" if from_user else "assistant",
                     "content": history_msg["content"],
                 }
             )
-        sio.emit("startTyping", session_id, callback=lambda _: None)
-        response = generate_response(user, context)  # 生成响应内容
-
-        def handle_callback(res):
-            if res["type"] == "SUCCESS":
-                logger.info("回复成功")
-            else:
-                logger.error("回复失败")
-
-        history = fetch_history_messages(session_id, token)
-        if history[-1]["_id"] == message["_id"]:  # 在发送回复之前再看一眼聊天记录，如果用户有新的输入，则不进行回复
-            sio.emit("stopTyping", session_id, callback=lambda _: None)
-            sio.emit(
-                "privateMessage",
+        elif history_msg["type"] == "image":
+            context.append(
                 {
-                    "type": "text",
-                    "recipientId": message["senderId"],
-                    "content": response,
-                    "timestamp": get_now_str(),
-                },
-                callback=handle_callback,
+                    "role": "user" if from_user else "assistant",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": history_msg["content"],
+                            },
+                        }
+                    ],
+                }
             )
+    sio.emit("startTyping", session_id, callback=lambda _: None)
+    response = generate_response(user, context)  # 生成响应内容
+
+    def handle_callback(res):
+        if res["type"] == "SUCCESS":
+            logger.info("回复成功")
+        else:
+            logger.error("回复失败")
+
+    history = fetch_history_messages(session_id, token)
+    if history[-1]["_id"] == message["_id"]:  # 在发送回复之前再看一眼聊天记录，如果用户有新的输入，则不进行回复
+        sio.emit("stopTyping", session_id, callback=lambda _: None)
+        sio.emit(
+            "privateMessage",
+            {
+                "type": "text",
+                "recipientId": message["senderId"],
+                "content": response,
+                "timestamp": get_now_str(),
+            },
+            callback=handle_callback,
+        )
 
 
 @sio.event
