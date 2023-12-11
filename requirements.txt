@@ -6,3 +6,4 @@ requests
 pillow
 pytz
 schedule
+redis
