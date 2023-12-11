@@ -1,8 +1,5 @@
-import time
 from datetime import datetime
 import pytz
-
-from generate import client
 
 
 def get_now_str():

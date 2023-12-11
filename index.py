@@ -1,47 +1,18 @@
-import threading
+import time
 
 from sio import sio
-# from generate import client
 from config import config
 from logger import logger
-# from network import fetch_sessions
-from user import user
-# from task_queue import Task, task_queue_loop, add_task
-from task_queue import task_queue_loop
-# from message_queue import message_queue_loop, Message, add_message, thread_store
-from message_queue import message_queue_loop, Message, add_message
+from agent import agent
+from openai_client import client
 
-
-# def init_sessions():
-#     sessions = fetch_sessions(user.token)
-#     for session in sessions:
-#         session_id = session["id"]
-#         peer = session["peer"]
-#         messages = session["messages"]
-#         # 为每个会话创建一个thread
-#         thread = client.beta.threads.create()
-#         last_openai_message = None
-#         for message in messages:
-#             if message["type"] == "text":  # 只处理文本消息
-#                 openai_message = client.beta.threads.messages.create(
-#                     thread_id=thread.id,
-#                     role="user" if message["senderId"] == peer["id"] else "assistant",
-#                     content=message["content"],
-#                 )
-#                 last_openai_message = openai_message
-#         thread_store[session_id] = thread
-#         have_unreaded = messages[-1]["senderId"] == peer["id"]
-#         if have_unreaded:
-#             run = client.beta.threads.runs.create(
-#                 thread_id=thread.id,
-#                 assistant_id=user.assistant.id,
-#             )
-#             add_task(Task(run, thread, session_id, last_openai_message))
+thread_store = {}
+thread_lock = {}
 
 
 @sio.event
 def connect():
-    logger.info(f"{user.username} 成功上线")
+    logger.info(f"{agent.username} 成功上线")
 
 
 @sio.on("privateMessage")
@@ -49,21 +20,59 @@ def deal_message(payload):
     session_id = payload["sessionId"]
     message = payload["message"]
     if message["type"] == "text":  # 只处理文本消息
-        add_message(
-            Message(session_id, message["content"], message["senderId"]))
+        thread_id = thread_store.get(session_id, None)
+        if thread_id is None:
+            thread_id = client.beta.threads.create().id
+            thread_store[session_id] = thread_id
+        while thread_lock.get(thread_id, False):
+            time.sleep(1)
+        thread_lock[thread_id] = True
+        trigger_message = client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=message["content"],
+        )
+        run = client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=agent.assistant.id,
+        )
+        sio.emit("startTyping", session_id, callback=lambda _: None)
+        while run.status == "queued" or run.status == "in_progress":
+            run = client.beta.threads.runs.retrieve(
+                thread_id=thread_id,
+                run_id=run.id,
+            )
+            time.sleep(1)
+        response_messages = client.beta.threads.messages.list(
+            thread_id=thread_id, order="asc", after=trigger_message.id
+        )
+        logger.info(response_messages)
+        sio.emit("stopTyping", session_id, callback=lambda _: None)
+
+        def callback(res):
+            if res["type"] == "SUCCESS":
+                logger.info("回复成功")
+            else:
+                logger.error("回复失败")
+        for response_message in response_messages:
+            if response_message.role == "assistant":
+                sio.emit(
+                    "privateMessage",
+                    {
+                        "type": "text",
+                        "recipientId": message["senderId"],
+                        "content": response_message.content[0].text.value,
+                        "timestamp": response_message.created_at,
+                    },
+                    callback=callback,
+                )
+        thread_lock[thread_id] = False
 
 
 @sio.event
 def disconnect():
-    logger.info(f"{user.username} 下线")
+    logger.info(f"{agent.username} 下线")
 
 
-# init_sessions()  # 启动agent时，在openai中同步session
-task_queue_loop_thread = threading.Thread(
-    target=task_queue_loop, daemon=True).start()
-
-message_queue_loop_thread = threading.Thread(
-    target=message_queue_loop, daemon=True).start()
-
-sio.connect(config.chat_server, auth={"token": user.token})
+sio.connect(config.chat_server, auth={"token": agent.token})
 sio.wait()
