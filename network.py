@@ -38,8 +38,15 @@ def fetch_history_messages(session_id, token):
         f"{config.back_server}/message/{session_id}", headers={"token": token}
     ).json()["data"]["session"]["messages"]
 
+def fetch_sessions(token):
+    return requests.get(
+        f"{config.back_server}/message", headers={"token": token}
+    ).json()["data"]["sessions"]
+
 
 if __name__ == "__main__":
-    token = login("gyr679", "2023111")
-    res = fetch_history_messages("fd9b07f8-ebaa-444a-83fe-ccabff3807a3", token)
+    token = login("Athena", "myLover")
+    # res = fetch_history_messages("fd9b07f8-ebaa-444a-83fe-ccabff3807a3", token)
+    res = fetch_sessions(token)
+    json.dump(res, open("sessions.json", "w", encoding="utf-8"), ensure_ascii=False)
     print(res)
