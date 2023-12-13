@@ -27,4 +27,4 @@ def add_user(username: str, password: str):
 
 
 if __name__ == "__main__":
-    add_user("Athena", "myLover")
+    add_user("Evil", "veryEvil")

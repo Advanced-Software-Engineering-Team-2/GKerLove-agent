@@ -1,7 +1,6 @@
 import os
 import time
 import threading
-import schedule
 
 from agent_store import agent_factory
 from network import login
@@ -22,10 +21,8 @@ def refresh_token():
 
 
 def scheduler():
-    schedule.every().hour.do(refresh_token)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    time.sleep(60 * 60)
+    refresh_token()
 
 
 refresh_token()
