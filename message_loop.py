@@ -70,6 +70,7 @@ def receive_message(session_id, thread_id, sender_id, message):
 
 def _submit_task(session):
     with session.lock:  # 锁住session，防止在创建run的过程中，有新消息进来
+        mark_session_busy(session.session_id)
         offset = -1
         for message in session.messages:
             offset = client.beta.threads.messages.create(
@@ -82,7 +83,6 @@ def _submit_task(session):
             assistant_id=agent.assistant.id,
         )
         sio.emit("startTyping", session.session_id, callback=lambda _: None)
-        mark_session_busy(session.session_id)
         task = Task(run, session, offset)
         add_task(task)
         session.messages.clear()
