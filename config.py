@@ -7,7 +7,7 @@ class DevConfig:
 
 
 class ProdConfig:
-    back_server = "https://back.love.gkers.cqupt-gyr.xyz:1111"
+    back_server = "https://back.love.gkers.top:1111"
     chat_server = "https://chat.love.gkers.cqupt-gyr.xyz:1111"
 
 

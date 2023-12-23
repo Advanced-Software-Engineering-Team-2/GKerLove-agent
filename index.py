@@ -1,6 +1,7 @@
 import os
 import time
 import socketio
+import threading
 
 from config import config
 from logger import logger
@@ -14,10 +15,27 @@ user_class = os.getenv("USER_CLASS", "Athena")
 user = user_factory(user_class)
 
 token = None
-while not token:
-    token = login(user.username, user.password)
-    if not token:
-        time.sleep(5)
+# while not token:
+#     token = login(user.username, user.password)
+#     if not token:
+#         time.sleep(5)
+
+def refresh_token():
+    logger.info("Refreshing token")
+    global token
+    while not token:
+        token = login(user.username, user.password)
+        time.sleep(1)
+    logger.info("Token refreshed", token)
+
+
+def scheduler():
+    time.sleep(60 * 60)
+    refresh_token()
+
+
+refresh_token()
+threading.Thread(target=scheduler, daemon=True).start()
 
 sio = socketio.Client()
 
