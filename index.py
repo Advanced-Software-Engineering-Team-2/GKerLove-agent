@@ -55,6 +55,7 @@ def deal_message(payload):
     # if message["type"] == "text":  # 只处理文本消息
     history = fetch_history_messages(session_id, token)
     # history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
+    history = history[-10:]  # 只保留最近的10条消息，节省花费，同时避免token数量超限
     context = []
     for history_msg in history:
         from_user = history_msg["senderId"] == message["senderId"]
