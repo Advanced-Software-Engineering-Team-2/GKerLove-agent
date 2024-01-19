@@ -34,9 +34,13 @@ def login(username, password):
 
 
 def fetch_history_messages(session_id, token):
-    return requests.get(
-        f"{config.back_server}/message/{session_id}", headers={"token": token}
-    ).json()["data"]["session"]["messages"]
+    try:
+        return requests.get(
+            f"{config.back_server}/message/{session_id}", headers={"token": token}
+        ).json()["data"]["session"]["messages"]
+    except Exception as e:
+        logger.error(e)
+        return []
 
 
 if __name__ == "__main__":
