@@ -95,12 +95,15 @@ def deal_message(payload):
         sio.emit("stopTyping", session_id, callback=lambda _: None)
         sio.emit(
             "privateMessage",
-            {
-                "type": "text",
-                "recipientId": message["senderId"],
-                "content": response,
-                "timestamp": get_now_str(),
-            },
+            (
+                session_id,
+                {
+                    "type": "text",
+                    "recipientId": message["senderId"],
+                    "content": response,
+                    "timestamp": get_now_str(),
+                },
+            ),
             callback=handle_callback,
         )
 
