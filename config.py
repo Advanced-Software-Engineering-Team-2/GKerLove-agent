@@ -2,8 +2,8 @@ import os
 
 
 class DevConfig:
-    back_server = "http://localhost:8989"
-    chat_server = "http://localhost:3000"
+    back_server = "http://localhost:30901"
+    chat_server = "http://localhost:30101"
 
 
 class ProdConfig:

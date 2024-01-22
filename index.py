@@ -20,6 +20,7 @@ token = None
 #     if not token:
 #         time.sleep(5)
 
+
 def refresh_token():
     logger.info("Refreshing token")
     global token
@@ -54,7 +55,7 @@ def deal_message(payload):
     message = payload["message"]
     # if message["type"] == "text":  # 只处理文本消息
     history = fetch_history_messages(session_id, token)
-    # history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
+    history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
     history = history[-10:]  # 只保留最近的10条消息，节省花费，同时避免token数量超限
     context = []
     for history_msg in history:
