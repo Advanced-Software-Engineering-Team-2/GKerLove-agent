@@ -4,7 +4,7 @@ import os
 class Athena:
     def __init__(self):
         self.username = "Athena"
-        self.password = os.getenv("USER_PASSWORD")
+        self.password = os.getenv("GKerLove_agent_password")
         self.prompt = [
             {
                 "role": "system",
@@ -59,4 +59,4 @@ def user_factory(class_name):
 
 
 if __name__ == "__main__":
-    print(os.getenv("USER_PASSWORD"))
+    print(os.getenv("GKerLove_agent_password"))
