@@ -29,3 +29,8 @@ spec:
               secretKeyRef:
                 name: openai-api-key
                 key: openaiKey
+          - name: USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: agent-password
+                key: password
