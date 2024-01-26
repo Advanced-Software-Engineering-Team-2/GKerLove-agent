@@ -31,8 +31,9 @@ def refresh_token():
 
 
 def scheduler():
-    time.sleep(60 * 60)
-    refresh_token()
+    while True:
+        time.sleep(60 * 60)
+        refresh_token()
 
 
 refresh_token()
