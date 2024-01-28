@@ -27,7 +27,8 @@ def refresh_token():
     while not token:
         token = login(user.username, user.password)
         time.sleep(1)
-    logger.info("Token refreshed", token)
+    logger.info("Token refreshed")
+    logger.info(token)
 
 
 def scheduler():
@@ -52,9 +53,12 @@ def deal_message(payload):
     """
     收到用户的消息，获取历史消息，返回响应
     """
+    global token
     session_id = payload["sessionId"]
     message = payload["message"]
     # if message["type"] == "text":  # 只处理文本消息
+    logger.info("fetch history messages with token")
+    logger.info(token)
     history = fetch_history_messages(session_id, token)
     history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
     history = history[-10:]  # 只保留最近的10条消息，节省花费，同时避免token数量超限
@@ -91,6 +95,8 @@ def deal_message(payload):
         else:
             logger.error("回复失败")
 
+    logger.info("fetch history messages with token")
+    logger.info(token)
     history = fetch_history_messages(session_id, token)
     if history[-1]["_id"] == message["_id"]:  # 在发送回复之前再看一眼聊天记录，如果用户有新的输入，则不进行回复
         sio.emit("stopTyping", session_id, callback=lambda _: None)
