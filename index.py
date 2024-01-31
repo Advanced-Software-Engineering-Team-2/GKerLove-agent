@@ -24,9 +24,11 @@ token = None
 def refresh_token():
     logger.info("Refreshing token")
     global token
-    while not token:
+    while True:
         token = login(user.username, user.password)
         time.sleep(1)
+        if token:
+            break
     logger.info("Token refreshed")
     logger.info(token)
 
