@@ -4,6 +4,7 @@ import json
 
 from logger import logger
 from config import config
+from beans import Message
 
 ocr = ddddocr.DdddOcr(show_ad=False)
 
@@ -33,7 +34,7 @@ def login(username, password):
         return None
 
 
-def fetch_history_messages(session_id, token):
+def fetch_history_messages(session_id, token) -> list[Message]:
     try:
         res = requests.get(
             f"{config.back_server}/message/{session_id}", headers={"token": token}

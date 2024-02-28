@@ -27,10 +27,32 @@ spec:
           - name: OPENAI_API_KEY
             valueFrom:
               secretKeyRef:
-                name: openai-api-key
-                key: openaiKey
-          - name: GKerLove_agent_password
+                name: openai
+                key: apiKey
+          - name: PASSWORD_ATHENA
             valueFrom:
               secretKeyRef:
                 name: agent-password
-                key: password
+                key: Athena
+          - name: GAODE_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: gaode
+                key: apiKey
+          - name: LANGCHAIN_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: langchain
+                key: apiKey
+          - name: LANGCHAIN_TRACING_V2
+            value: "true"
+          - name: BING_SUBSCRIPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: bing
+                key: subscriptionKey
+          - name: BING_SEARCH_URL
+            valueFrom:
+              secretKeyRef:
+                name: bing
+                key: searchUrl
