@@ -80,19 +80,8 @@ class BaseAgent:
                     )
                 )
                 message_window = []
-        # 处理最后一个窗口
-        if len(message_window) > 0:
-            docs.append(
-                Document(
-                    page_content="\n".join(
-                        message["content"] for message in message_window
-                    ),
-                    metadata={
-                        "timestamp": message["timestamp"],
-                        "type": message["type"],
-                    },
-                )
-            )
+        if len(docs) == 0:
+            return ""
         db = FAISS.from_documents(
             docs, OpenAIEmbeddings(base_url=config.openai_base_url)
         )
