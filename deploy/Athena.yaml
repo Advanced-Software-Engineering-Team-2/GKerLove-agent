@@ -17,6 +17,10 @@ spec:
     spec:
       imagePullSecrets:
         - name: alibaba-docker-registry-secret
+      volumes:
+        - name: host-time
+          hostPath:
+            path: /etc/localtime
       containers:
         - image: $REGISTRY/$DOCKERHUB_NAMESPACE/gkerlove-agent:SNAPSHOT-$BUILD_NUMBER
           imagePullPolicy: Always
