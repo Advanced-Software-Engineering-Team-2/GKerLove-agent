@@ -1,15 +1,17 @@
 from langchain.schema import HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain.agents import create_openai_tools_agent, AgentExecutor
+from langchain_core.documents import Document
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores.faiss import FAISS
 
-from memory import create_memory
 from beans import Message
 from logger import logger
+from config import config
 
 
 class BaseAgent:
     def __init__(self, llm, tools, prompt):
-        self.memory = create_memory()
         self.agent = create_openai_tools_agent(llm, tools, prompt)
         self.agent_executor = AgentExecutor(agent=self.agent, tools=self.tools)
         self.output_parser = StrOutputParser()
@@ -31,25 +33,72 @@ class BaseAgent:
         )
         return res["output"]
 
-    def get_related_messages(self, user_input: Message, history: list[Message]):
-        self.memory.clear()
-        inputs_buffer = []
-        for message in history:
+    def get_related_messages(
+        self, user_input: Message, history: list[Message], window_size=10, k=2
+    ):
+        """
+        获取与用户输入相关的消息历史，用于模型输入
+        将聊天记录每window_size条消息作为一个document
+        使用vector search获取与用户输入相关的document
+        返回k个聊天窗口
+        """
+        assert window_size > 0, "window_size should be greater than 0"
+        assert k > 0, "k should be greater than 0"
+        if len(history) == 0:
+            return ""
+        message_window = []
+        docs = []
+        for _message in history:
+            message = _message.copy()
             from_user = message["senderId"] == user_input["senderId"]
-            if from_user:
-                inputs_buffer.append(message["content"])
-            else:
-                inputs = "\n".join(inputs_buffer)
-                output = message["content"]
-                inputs_buffer = []
-                self.memory.save_context({"user": inputs}, {"you": output})
-        return self.memory.load_memory_variables({"prompt": user_input["content"]})[
-            "chat_history"
-        ]
+            prefix = "user: " if from_user else "you: "
+            message["content"] = prefix + message["content"]
+            message_window.append(message)
+            if len(message_window) == window_size:
+                # window_size条消息为一个窗口
+                docs.append(
+                    Document(
+                        page_content="\n".join(
+                            message["content"] for message in message_window
+                        ),
+                        metadata={
+                            "timestamp": message["timestamp"],
+                            "type": message["type"],
+                        },
+                    )
+                )
+                message_window = []
+        if len(message_window) > 0:
+            docs.append(
+                Document(
+                    page_content="\n".join(
+                        message["content"] for message in message_window
+                    ),
+                    metadata={
+                        "timestamp": message["timestamp"],
+                        "type": message["type"],
+                    },
+                )
+            )
+        db = FAISS.from_documents(
+            docs, OpenAIEmbeddings(base_url=config.openai_base_url)
+        )
+        releted_docs = db.similarity_search(user_input["content"], k=k)
+        res = ""
+        for doc in releted_docs:
+            res += doc.metadata["timestamp"] + "\n"
+            res += doc.page_content + "\n"
+        return res
 
-    def get_recent_chat_history(self, user_input: Message, history: list[Message]):
+    def get_recent_chat_history(
+        self, user_input: Message, history: list[Message], messages_num=10
+    ):
+        """
+        获取最近的messages_num条消息，用于模型输入
+        """
+        assert messages_num > 0, "messages_num should be greater than 0"
         recent_chat_history = []
-        for message in history[-10:]:
+        for message in history[-messages_num:]:
             from_user = message["senderId"] == user_input["senderId"]
             recent_chat_history.append(
                 HumanMessage(message["content"])
