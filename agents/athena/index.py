@@ -16,7 +16,7 @@ from ..base import BaseAgent
 class Athena(BaseAgent):
     def __init__(self):
         self.username = "Athena"
-        self.password = os.getenv("GKerLove_agent_password")
+        self.password = os.getenv("PASSWORD_ATHENA")
         self.prompt = prompt_template
         self.llm = ChatOpenAI(
             model="gpt-4",

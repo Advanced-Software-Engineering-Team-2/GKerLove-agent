@@ -27,7 +27,6 @@ def login(username, password):
     res = res.json()
     if res["code"] == "SUCCESS":
         logger.info("登录成功")
-        logger.info("token: " + res["data"]["token"])
         return res["data"]["token"]
     else:
         logger.error("登录失败")

@@ -52,7 +52,4 @@ spec:
                 name: bing
                 key: subscriptionKey
           - name: BING_SEARCH_URL
-            valueFrom:
-              secretKeyRef:
-                name: bing
-                key: searchUrl
+            value: https://api.bing.microsoft.com/v7.0/search
