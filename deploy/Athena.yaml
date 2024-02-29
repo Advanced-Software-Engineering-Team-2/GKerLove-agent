@@ -57,3 +57,6 @@ spec:
                 key: subscriptionKey
           - name: BING_SEARCH_URL
             value: https://api.bing.microsoft.com/v7.0/search
+          volumeMounts:
+          - name: host-time
+            mountPath: /etc/localtime
