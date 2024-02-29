@@ -19,7 +19,7 @@ class Athena(BaseAgent):
         self.password = os.getenv("PASSWORD_ATHENA")
         self.prompt = prompt_template
         self.llm = ChatOpenAI(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4-0125-preview",
             base_url=config.openai_base_url,
             max_tokens=500,
         )
@@ -27,6 +27,6 @@ class Athena(BaseAgent):
             bing_search_tool,
             weather_tool,
             current_datetime_tool,
-            create_experience_tool("assets/experiences/Athena.txt"),
+            # create_experience_tool("assets/experiences/Athena.txt"),
         ]
         super().__init__(self.llm, self.tools, self.prompt)
