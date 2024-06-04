@@ -19,7 +19,7 @@ class Athena(BaseAgent):
         self.password = os.getenv("PASSWORD_ATHENA")
         self.prompt = prompt_template
         self.llm = ChatOpenAI(
-            model="gpt-4-0125-preview",
+            model="gpt-4o",
             base_url=config.openai_base_url,
             max_tokens=500,
         )
