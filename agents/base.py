@@ -24,9 +24,24 @@ class BaseAgent:
         history = history[:-1]  # 去掉最后一条消息
         attached_messages = self.get_recent_chat_history(user_input, history)
         related_messages = self.get_related_messages(user_input, history)
+        # res = self.agent_executor.invoke(
+        #     {
+        #         "user_input": user_input["content"],
+        #         "related_messages": related_messages,
+        #         "recent_chat_history": attached_messages,
+        #     }
+        # )
         res = self.agent_executor.invoke(
             {
-                "user_input": user_input["content"],
+                "user_input": [
+                    (
+                        (
+                            {"image_url": user_input["content"]}
+                            if user_input["type"] == "image"
+                            else {"text": user_input["content"]}
+                        ),
+                    )
+                ],
                 "related_messages": related_messages,
                 "recent_chat_history": attached_messages,
             }
@@ -109,9 +124,21 @@ class BaseAgent:
         recent_chat_history = []
         for message in history[-10:]:
             from_user = message["senderId"] == user_input["senderId"]
-            recent_chat_history.append(
-                HumanMessage(message["content"])
-                if from_user
-                else AIMessage(message["content"])
-            )
+            if message["type"] == "text":
+                recent_chat_history.append(
+                    HumanMessage(message["content"])
+                    if from_user
+                    else AIMessage(message["content"])
+                )
+            elif message["type"] == "image":
+                recent_chat_history.append(
+                    HumanMessage(
+                        [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": message["content"]},
+                            }
+                        ]
+                    )
+                )
         return recent_chat_history

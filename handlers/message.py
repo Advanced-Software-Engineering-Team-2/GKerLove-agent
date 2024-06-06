@@ -14,7 +14,7 @@ def message(payload: MessagePayload):
     session_id = payload["sessionId"]
     message = payload["message"]
     history = fetch_history_messages(session_id, token)
-    history = list(filter(lambda x: x["type"] == "text", history))  # 只保留文本消息
+    # history = list(filter(lambda x: x["type"] == "text", history))  # 历史只保留文本消息
     sio.emit("startTyping", session_id, callback=lambda _: None)
     response = user.respond(message, history)
 
