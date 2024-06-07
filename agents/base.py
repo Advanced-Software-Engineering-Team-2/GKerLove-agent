@@ -8,6 +8,7 @@ from langchain_community.vectorstores.faiss import FAISS
 from beans import Message
 from logger import logger
 from config import config
+from helpers import encode_image
 
 
 class BaseAgent:
@@ -35,12 +36,16 @@ class BaseAgent:
             {
                 "user_input": [
                     (
-                        (
-                            {"image_url": user_input["content"]}
-                            if user_input["type"] == "image"
-                            else {"text": user_input["content"]}
-                        ),
-                    )
+                        {
+                            "image_url": {
+                                # "url": f"data:image/jpeg;base64,{encode_image(user_input['content'])}",
+                                "url": user_input["content"]
+                                + "?x-oss-process=image/resize,w_512"
+                            }
+                        }
+                        if user_input["type"] == "image"
+                        else {"text": user_input["content"]}
+                    ),
                 ],
                 "related_messages": related_messages,
                 "recent_chat_history": attached_messages,
@@ -136,7 +141,11 @@ class BaseAgent:
                         [
                             {
                                 "type": "image_url",
-                                "image_url": {"url": message["content"]},
+                                "image_url": {
+                                    "url": message["content"]
+                                    + "?x-oss-process=image/resize,w_512",
+                                    # "url": f"data:image/jpeg;base64,{encode_image(message['content'])}",
+                                },
                             }
                         ]
                     )

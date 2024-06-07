@@ -1,5 +1,8 @@
 from datetime import datetime
 import pytz
+import base64
+import requests
+from logger import logger
 
 
 def get_now_str():
@@ -11,5 +14,15 @@ def get_now_str():
     return iso_date_bj
 
 
+def encode_image(image_url):
+    logger.info(f"Encoding image from {image_url}")
+    res = requests.get(image_url)
+    return base64.b64encode(res.content).decode("utf-8")
+
+
 if __name__ == "__main__":
-    print(get_now_str())
+    # print(get_now_str())
+    b64 = encode_image(
+        "https://gker-love.oss-cn-beijing.aliyuncs.com/Naive/messages/b4a84c88-aa92-4302-9b0b-11d6a402b8bb/7aa16bde-0f8a-406a-82e2-5d1bfc15f9aa.jpeg"
+    )
+    print(len(b64))
