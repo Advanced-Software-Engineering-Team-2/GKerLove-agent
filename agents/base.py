@@ -1,4 +1,5 @@
 from langchain.schema import HumanMessage, AIMessage
+from langchain.prompts import HumanMessagePromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.agents import create_openai_tools_agent, AgentExecutor
 from langchain_core.documents import Document
@@ -8,7 +9,6 @@ from langchain_community.vectorstores.faiss import FAISS
 from beans import Message
 from logger import logger
 from config import config
-from helpers import encode_image
 
 
 class BaseAgent:
@@ -32,21 +32,26 @@ class BaseAgent:
         #         "recent_chat_history": attached_messages,
         #     }
         # )
-        res = self.agent_executor.invoke(
-            {
-                "user_input": [
+        input_messages = [
+            HumanMessagePromptTemplate.from_template(
+                [
                     (
                         {
                             "image_url": {
-                                # "url": f"data:image/jpeg;base64,{encode_image(user_input['content'])}",
                                 "url": user_input["content"]
-                                + "?x-oss-process=image/resize,w_512"
+                                + "?x-oss-process=image/resize,l_1024",
+                                "detail": "low",
                             }
                         }
                         if user_input["type"] == "image"
                         else {"text": user_input["content"]}
                     ),
                 ],
+            ).format()
+        ]
+        res = self.agent_executor.invoke(
+            {
+                "input_messages": input_messages,
                 "related_messages": related_messages,
                 "recent_chat_history": attached_messages,
             }
@@ -143,8 +148,8 @@ class BaseAgent:
                                 "type": "image_url",
                                 "image_url": {
                                     "url": message["content"]
-                                    + "?x-oss-process=image/resize,w_512",
-                                    # "url": f"data:image/jpeg;base64,{encode_image(message['content'])}",
+                                    + "?x-oss-process=image/resize,l_1024",
+                                    "detail": "low",
                                 },
                             }
                         ]

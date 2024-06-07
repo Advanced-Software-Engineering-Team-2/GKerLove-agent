@@ -38,8 +38,8 @@ prompt_template = ChatPromptTemplate.from_messages(
 """
         ),
         MessagesPlaceholder("recent_chat_history"),
-        HumanMessagePromptTemplate.from_template("{user_input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
+        MessagesPlaceholder("input_messages"),
+        MessagesPlaceholder("agent_scratchpad"),
     ],
 )
 
@@ -49,11 +49,31 @@ if __name__ == "__main__":
         HumanMessage("今天有空？"),
         AIMessage("今天有空呀，一起出去玩嘛？"),
     ]
+    msg_type = "text"
+    input_messages = [
+        HumanMessagePromptTemplate.from_template(
+            [
+                (
+                    {
+                        "image_url": {
+                            # "url": f"data:image/jpeg;base64,{encode_image(user_input['content'])}",
+                            "url": "good" + "?x-oss-process=image/resize,l_1024",
+                            "detail": "low",
+                        }
+                    }
+                    if msg_type == "image"
+                    else {"text": "good"}
+                ),
+            ],
+        ).format()
+    ]
+
     res = prompt_template.invoke(
         {
-            "user_input": "好啊，去哪里玩？",
+            "input_messages": input_messages,
             "related_messages": related_messages,
             "recent_chat_history": recent_chat_history,
+            "agent_scratchpad": [],
         }
     )
     print(res)

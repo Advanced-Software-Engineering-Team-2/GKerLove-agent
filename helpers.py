@@ -2,7 +2,6 @@ from datetime import datetime
 import pytz
 import base64
 import requests
-from logger import logger
 
 
 def get_now_str():
@@ -15,7 +14,6 @@ def get_now_str():
 
 
 def encode_image(image_url):
-    logger.info(f"Encoding image from {image_url}")
     res = requests.get(image_url)
     return base64.b64encode(res.content).decode("utf-8")
 
