@@ -57,6 +57,11 @@ spec:
                 key: subscriptionKey
           - name: BING_SEARCH_URL
             value: https://api.bing.microsoft.com/v7.0/search
+          - name: TAVILY_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: tavily
+                key: apiKey
           volumeMounts:
           - name: host-time
             mountPath: /etc/localtime

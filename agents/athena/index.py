@@ -9,6 +9,7 @@ from tools import (
     weather_tool,
     current_datetime_tool,
     create_experience_tool,
+    tavily_search_tool,
 )
 from ..base import BaseAgent
 
@@ -24,7 +25,8 @@ class Athena(BaseAgent):
             max_tokens=500,
         )
         self.tools = [
-            bing_search_tool,
+            tavily_search_tool,
+            # bing_search_tool,
             weather_tool,
             current_datetime_tool,
             # create_experience_tool("assets/experiences/Athena.txt"),
