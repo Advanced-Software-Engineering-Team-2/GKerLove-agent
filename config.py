@@ -2,7 +2,7 @@ import os
 
 
 class BaseConfig:
-    openai_base_url = "https://api.ai.cs.ac.cn/v1"
+    openai_base_url = "https://api2.aigcbest.top/v1"
 
 
 class DevConfig(BaseConfig):
