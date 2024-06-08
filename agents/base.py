@@ -40,7 +40,6 @@ class BaseAgent:
                             "image_url": {
                                 "url": user_input["content"]
                                 + "?x-oss-process=image/resize,l_1024",
-                                "detail": "low",
                             }
                         }
                         if user_input["type"] == "image"
@@ -149,7 +148,6 @@ class BaseAgent:
                                 "image_url": {
                                     "url": message["content"]
                                     + "?x-oss-process=image/resize,l_1024",
-                                    "detail": "low",
                                 },
                             }
                         ]
