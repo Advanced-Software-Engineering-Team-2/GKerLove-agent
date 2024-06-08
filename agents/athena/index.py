@@ -22,7 +22,7 @@ class Athena(BaseAgent):
         self.llm = ChatOpenAI(
             model="gpt-4o",
             base_url=config.openai_base_url,
-            max_tokens=500,
+            max_tokens=400,
         )
         self.tools = [
             tavily_search_tool,
